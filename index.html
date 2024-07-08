@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voice Enabled Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        *{ padding: 0; margin: 0; box-sizing: border-box;}
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Initialize the map
+            const map = L.map('map').setView([51.505, -0.09], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            // Check for Speech Recognition API support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Your browser does not support Speech Recognition. Please use Google Chrome.');
+            } else {
+                // Voice recognition setup
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+
+                recognition.onresult = function(event) {
+                    const command = event.results[0][0].transcript.toLowerCase();
+                    console.log('Recognized command:', command); // Debugging line
+                    handleCommand(command);
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Recognition error:', event.error); // Debugging line
+                    alert('Error occurred in recognition: ' + event.error);
+                };
+
+                recognition.onend = function() {
+                    console.log('Voice recognition ended, restarting...'); // Debugging line
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 1000); // slight delay before restarting
+                };
+
+                function startRecognition() {
+                    recognition.start();
+                    console.log('Voice recognition started'); // Debugging line
+                }
+
+                function handleCommand(command) {
+                    if (command.includes('zoom in')) {
+                        console.log('Zooming in'); // Debugging line
+                        map.zoomIn();
+                    } else if (command.includes('zoom out')) {
+                        console.log('Zooming out'); // Debugging line
+                        map.zoomOut();
+                    } else if (command.includes('go to')) {
+                        const location = command.replace('go to', '').trim();
+                        console.log('Going to location:', location); // Debugging line
+                        goToLocation(location);
+                    } else {
+                        console.log('Unknown command'); // Debugging line
+                    }
+                }
+
+                function goToLocation(location) {
+                    // Implement geocoding to convert location name to coordinates
+                    // Example: if location is "New York", find its coordinates and move the map to that location
+                    console.log('Geocoding location:', location); // Debugging line
+                }
+
+                // Start recognition as soon as the page loads
+                startRecognition();
+            }
+        });
+    </script>
+</body>
+</html>
